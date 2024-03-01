@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<link rel=author href="mailto:jarhar@chromium.org">
+<link rel=help href="https://github.com/whatwg/html/issues/9799">
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+
+<select>
+  <datalist>
+    <option class=one>one</option>
+    <div>
+      <option class=two>two</option>
+    </div>
+    <option class=three>three</option>
+  </datalist>
+</select>
+
+<script>
+const select = document.querySelector('select');
+const datalist = document.querySelector('datalist');
+const firstOption = document.querySelector('option.one');
+const secondOption = document.querySelector('option.two');
+const thirdOption = document.querySelector('option.three');
+const selectChildDiv = document.createElement('div');
+select.appendChild(selectChildDiv);
+
+test(() => {
+  assert_equals(select.length, 3, 'select.length');
+  assert_equals(select.options.length, 3, 'select.options.length');
+  assert_equals(select.options[0], firstOption, 'select.options[0]');
+  assert_equals(select.options[1], secondOption, 'select.options[1]');
+  assert_equals(select.options[2], thirdOption, 'select.options[2]');
+
+  assert_equals(select.value, 'one', 'initial select.value');
+  select.value = 'two';
+  assert_equals(select.value, 'two', 'select.value after modifying');
+
+  secondOption.remove();
+  assert_equals(select.length, 2, 'select.length after removing an option');
+  assert_equals(select.options.length, 2, 'select.options.length after removing an option');
+  assert_equals(select.options[0], firstOption, 'select.options[0] after removing an option');
+  assert_equals(select.options[1], thirdOption, 'select.options[1] after removing an option');
+
+  datalist.appendChild(secondOption);
+  assert_equals(select.length, 3, 'select.length after re-adding an option');
+  assert_equals(select.options.length, 3, 'select.options.length after re-adding an option');
+  assert_equals(select.options[0], firstOption, 'select.options[0] after re-adding an option');
+  assert_equals(select.options[1], thirdOption, 'select.options[1] after re-adding an option');
+  assert_equals(select.options[2], secondOption, 'select.options[2] after re-adding an option');
+
+  selectChildDiv.appendChild(secondOption);
+  assert_equals(select.length, 2, 'select.length after moving option to child div');
+  assert_equals(select.options.length, 2, 'select.options.length after moving option to child div');
+  assert_equals(select.options[0], firstOption, 'select.options[0] after moving option to child div');
+  assert_equals(select.options[1], thirdOption, 'select.options[1] after moving option to child div');
+}, 'Option elements should work if they are a descendant of a selects datalist.');
+</script>
