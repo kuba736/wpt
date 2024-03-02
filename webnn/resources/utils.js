@@ -894,3 +894,61 @@ const toHalf = (value) => {
   bits += m & 1;
   return bits;
 };
+
+
+/**
+ * WebNN buffer creation.
+ * @param {MLContext} context - the context used to create the buffer.
+ * @param {Number} bufferSize - Size of the buffer to create, in bytes.
+ */
+const createBuffer = (context, bufferSize) => {
+  let buffer;
+  try {
+    buffer = context.createBuffer({size:bufferSize});
+    assert_equals(buffer.size, bufferSize);
+  } catch (e) {
+    assert_true(e instanceof DOMException);
+    assert_equals(e.name, "NotSupportedError");
+  }
+  return buffer;
+};
+
+/**
+ * WebNN destroy buffer test.
+ * @param {String} testName - The name of the test operation.
+ * @param {Number} bufferSize - Size of the buffer to create, in bytes.
+ * @param {String} deviceType - The execution device type for this test.
+ */
+const testDestroyWebNNBuffer = (testName, bufferSize, deviceType = 'cpu') => {
+  let context;
+  let buffer;
+  promise_setup(async () => {
+    context = await navigator.ml.createContext({deviceType});
+    buffer = createBuffer(context, bufferSize);
+  });
+  // MLBuffer is not supported for this deviceType.
+  if (buffer === undefined) {
+    return;
+  }
+  promise_test(async () => {
+    buffer.destroy();
+    buffer.destroy();
+  }, `${testName}`);
+};
+
+/**
+ * WebNN create buffer test.
+ * @param {String} testName - The name of the test operation.
+ * @param {Function} bufferFunc - A buffer operation function.
+ * @param {Number} bufferSize - Size of the buffer to create, in bytes.
+ * @param {String} deviceType - The execution device type for this test.
+ */
+const testCreateWebNNBuffer = (testName, bufferFunc, bufferSize, deviceType = 'cpu') => {
+  let context;
+  promise_setup(async () => {
+      context = await navigator.ml.createContext({deviceType});
+  });
+  promise_test(async () => {
+    bufferFunc(context, bufferSize);
+  }, `${testName} / ${bufferSize}`);
+};
